@@ -80,4 +80,5 @@ app.post("/electricity", async (req, res) => {
 });
 
 // Server
-app.listen(3000, () => console.log("Server running"));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Server running on port " + PORT));
