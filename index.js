@@ -1,7 +1,7 @@
 // index.js — P-DataHub Bot (Inline Buttons + Wallet + Auto-profit)
 // Requires: node >= 16, packages: express axios node-telegram-bot-api dotenv fs
 
-import express from "express";
+const express = require("express");
 import axios from "axios";
 import TelegramBot from "node-telegram-bot-api";
 import path from "path";
