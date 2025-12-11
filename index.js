@@ -4,29 +4,54 @@ import TelegramBot from "node-telegram-bot-api";
 
 dotenv.config();
 
-const app = express();
-const port = process.env.PORT || 3000;
+const TOKEN = process.env.BOT_TOKEN;
+const URL = process.env.RENDER_EXTERNAL_URL;  // Render automatically provides this
+const PORT = process.env.PORT || 3000;
 
-// === BOT (Polling Mode - No Webhook Needed) ===
-const token = process.env.BOT_TOKEN;
-
-if (!token) {
-    console.error("❌ BOT_TOKEN is missing!");
+// SAFETY CHECK
+if (!TOKEN) {
+    console.error("❌ BOT_TOKEN missing in Render environment!");
+    process.exit(1);
+}
+if (!URL) {
+    console.error("❌ RENDER_EXTERNAL_URL missing! Add it in Render Env Variables");
     process.exit(1);
 }
 
-const bot = new TelegramBot(token, { polling: true });
+// ---------------------- INIT BOT -----------------------
+const bot = new TelegramBot(TOKEN, { webHook: true });
 
+// Set webhook to Render URL
+const webhookPath = `/webhook/${TOKEN}`;
+const webhookURL = `${URL}${webhookPath}`;
+
+await bot.setWebHook(webhookURL);
+console.log("✅ Webhook set:", webhookURL);
+
+// ---------------------- EXPRESS ------------------------
+const app = express();
+app.use(express.json());
+
+// Telegram sends updates here
+app.post(webhookPath, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
+
+// ---------------------- BOT COMMANDS --------------------
 bot.on("message", (msg) => {
-    bot.sendMessage(msg.chat.id, "Bot is active 24/7 on Render 🚀");
+    const chatId = msg.chat.id;
+
+    // Example reply
+    bot.sendMessage(chatId, "🚀 Your bot is LIVE on Render using WEBHOOK!");
 });
 
-// API test
+// ---------------------- ROOT URL ------------------------
 app.get("/", (req, res) => {
-    res.send("Bot is running with polling ✔");
+    res.send("🚀 Telegram Bot Running — Webhook Active!");
 });
 
-// Start server
-app.listen(port, () => {
-    console.log("Server started on port", port);
+// ---------------------- START SERVER --------------------
+app.listen(PORT, () => {
+    console.log(`🌍 Server running on port ${PORT}`);
 });
