@@ -1,20 +1,22 @@
-app.get("/", (req, res) => {
-  res.send("Plex-Hub bot is active");
-})import express from "express";
+import express from "express";
 import axios from "axios";
 
 const app = express();
 app.use(express.json());
 
 const API_BASE = "https://www.cheapdatahub.ng/api/v1/";
-const API_KEY = "a4f6861f372802c679d43631b73a2bcef4e06f8e";  // replace with your key
+const API_KEY = "a4f6861f372802c679d43631b73a2bcef4e06f8e";
+
+// Home route
+app.get("/", (req, res) => {
+  res.send("Plex-Hub bot is active");
+});
 
 // Airtime purchase
 app.post("/airtime", async (req, res) => {
   try {
     let { provider_id, phone_number, amount } = req.body;
 
-    // Add your gain
     amount = amount + 40;
 
     const response = await axios.post(
@@ -33,7 +35,6 @@ app.post("/airtime", async (req, res) => {
     res.json({ error: err.message });
   }
 });
-
 
 // Cable subscription
 app.post("/cable", async (req, res) => {
@@ -62,7 +63,7 @@ app.post("/electricity", async (req, res) => {
   try {
     let { disco_id, meter_number, amount } = req.body;
 
-    amount = amount + 300; // your gain
+    amount = amount + 300;
 
     const response = await axios.post(
       API_BASE + "resellers/electricity/purchase/",
