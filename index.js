@@ -1,73 +1,35 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const path = require("path");
-const TelegramBot = require("node-telegram-bot-api");
+import express from "express";
+import TelegramBot from "node-telegram-bot-api";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const app = express();
-app.use(express.json());
-app.use(express.static("public"));
-
 const token = process.env.BOT_TOKEN;
-const webhookURL = process.env.WEBHOOK_URL;
+const url = process.env.WEBHOOK_URL;
 const port = process.env.PORT || 3000;
 
-// Fix for __dirname in CommonJS
-const __dirname = path.resolve();
+const app = express();
+app.use(express.json());
 
-// BOT (No polling)
-const bot = new TelegramBot(token, { webHook: { port } });
+// BOT (no polling, pure webhook)
+const bot = new TelegramBot(token, { webHook: { port: port } });
 
-// SET WEBHOOK
-if (webhookURL) {
-    bot.setWebHook(`${webhookURL}/webhook/${token}`);
-    console.log("Webhook active:", `${webhookURL}/webhook/${token}`);
-}
+// Set webhook
+bot.setWebHook(`${url}/bot${token}`);
 
-// WEBHOOK ROUTE
-app.post(`/webhook/${token}`, (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
+// Telegram webhook route
+app.post(`/bot${token}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
-// ---- API for Dashboard ----
-app.get("/api/stats", (req, res) => {
-    res.json({
-        status: "running",
-        bot: "connected",
-        uptime: process.uptime(),
-    });
-});
-
-app.post("/api/send", async (req, res) => {
-    const { chatId, text } = req.body;
-    try {
-        await bot.sendMessage(chatId, text);
-        res.json({ success: true });
-    } catch (e) {
-        res.json({ success: false, error: e.message });
-    }
-});
-
-// ---- Bot Logic ----
 bot.on("message", (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text?.toLowerCase() || "";
-
-    if (text === "/start") {
-        return bot.sendMessage(chatId, "Bot + dashboard is running 🚀");
-    }
-
-    bot.sendMessage(chatId, `Echo: ${msg.text}`);
+  bot.sendMessage(msg.chat.id, "Bot is working on Render! 🚀");
 });
 
-// ---- Serve UI ----
+// Dashboard homepage
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public/index.html"));
+  res.send("Plex Hub Bot is running ✔️");
 });
 
-// ---- Start Server ----
-app.listen(port, () => {
-    console.log("Server running on", port);
-});
+app.listen(port, () => console.log("Server running on port " + port));
